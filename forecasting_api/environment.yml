@@ -1,0 +1,8 @@
+name: rfc_forecasting_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - flask
+  - joblib
+  - pandas

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  influxdb:
+    image: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+
+  data_collector:
+    build:
+      context: ./data_collector
+      dockerfile: Dockerfile
+    depends_on:
+      - influxdb
+
+  ml_trainer:
+    build:
+      context: ./ml_trainer
+      dockerfile: Dockerfile
+    depends_on:
+      - influxdb
+
+  forecasting_api:
+    build:
+      context: ./forecasting_api
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - influxdb
+
+volumes:
+  influxdb_data:

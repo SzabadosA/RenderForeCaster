@@ -1,0 +1,9 @@
+name: rfc_ml_trainer_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12.4
+  - pandas
+  - scikit-learn
+  - influxdb-client
+
