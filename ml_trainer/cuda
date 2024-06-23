@@ -1,0 +1,215 @@
+CUDA Version 11.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+WARNING: The NVIDIA Driver was not detected.  GPU functionality will not be available.
+   Use the NVIDIA Container Toolkit to start this container with GPU support; see
+   https://docs.nvidia.com/datacenter/cloud-native/ .
+
+root@339c61ecb150:/app# python test_cuda
+python: can't open file '/app/test_cuda': [Errno 2] No such file or directory
+pydoc              pydoc3             pydoc3.10          pygmentize         python             python3            python3-config     python3.1          python3.10         python3.10-config
+root@339c61ecb150:/app# python test_cuda.py
+Is CUDA available?  False
+CUDA version:  11.8
+Number of CUDA devices:  0
+Traceback (most recent call last):
+  File "/app/test_cuda.py", line 6, in <module>
+    print("Current CUDA device: ", torch.cuda.current_device())
+  File "/opt/conda/lib/python3.10/site-packages/torch/cuda/__init__.py", line 778, in current_device
+    _lazy_init()
+  File "/opt/conda/lib/python3.10/site-packages/torch/cuda/__init__.py", line 293, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx
+root@339c61ecb150:/app# nvidia-smi
+bash: nvidia-smi: command not found
+root@339c61ecb150:/app# cd etc
+bash: cd: etc: No such file or directory
+root@339c61ecb150:/app# ls
+Dockerfile  environment.yml  label_encoders.pkl  model  predict.py  render_time_model.pth  renderdata.csv  requirements.txt  scaler.pkl  test_cuda.py  train_model.py
+root@339c61ecb150:/app# exit
+exit
+(base) PS C:\Users\aszab\Documents\Studium\Modules\ComputerScienceProject\Project\RenderForeCaster\ml_trainer> docker-compose run ml_trainer
+[+] Creating 1/0
+ ✔ Container renderforecaster-influxdb-1  Created                                                                                                                                                                                                                                                              0.0s
+[+] Running 1/1
+ ✔ Container renderforecaster-influxdb-1  Started                                                                                                                                                                                                                                                              0.6s
+
+== CUDA ==
+==========
+
+CUDA Version 11.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+WARNING: The NVIDIA Driver was not detected.  GPU functionality will not be available.
+   Use the NVIDIA Container Toolkit to start this container with GPU support; see
+   https://docs.nvidia.com/datacenter/cloud-native/ .
+
+root@256538d53be3:/app# docker info | grep -i runtime
+bash: docker: command not found
+root@256538d53be3:/app# exit
+exit
+(base) PS C:\Users\aszab\Documents\Studium\Modules\ComputerScienceProject\Project\RenderForeCaster\ml_trainer> docker-compose run ml_trainer
+[+] Creating 1/0
+ ✔ Container renderforecaster-influxdb-1  Running                                                                                                                                                                                                                                                              0.0s
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 11.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+WARNING: The NVIDIA Driver was not detected.  GPU functionality will not be available.
+   Use the NVIDIA Container Toolkit to start this container with GPU support; see
+   https://docs.nvidia.com/datacenter/cloud-native/ .
+
+root@8c52cc231739:/app# python test_cuda.py
+Is CUDA available?  False
+CUDA version:  11.8
+Number of CUDA devices:  0
+Traceback (most recent call last):
+  File "/app/test_cuda.py", line 6, in <module>
+    print("Current CUDA device: ", torch.cuda.current_device())
+  File "/opt/conda/lib/python3.10/site-packages/torch/cuda/__init__.py", line 778, in current_device
+    _lazy_init()
+  File "/opt/conda/lib/python3.10/site-packages/torch/cuda/__init__.py", line 293, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx
+root@8c52cc231739:/app# exit
+exit
+(base) PS C:\Users\aszab\Documents\Studium\Modules\ComputerScienceProject\Project\RenderForeCaster\ml_trainer> wsl --install
+Ubuntu is already installed.
+Launching Ubuntu...
+aszab@DESKTOP-MOQEHMI:~$ docker info | grep -i runtime
+WARNING: No blkio throttle.read_bps_device support
+WARNING: No blkio throttle.write_bps_device support
+WARNING: No blkio throttle.read_iops_device support
+Launching Ubuntu...
+aszab@DESKTOP-MOQEHMI:~$ docker info | grep -i runtime
+WARNING: No blkio throttle.read_bps_device support
+WARNING: No blkio throttle.write_bps_device support
+WARNING: No blkio throttle.read_iops_device support
+WARNING: No blkio throttle.write_iops_device support
+WARNING: daemon is not using the default seccomp profile
+ Runtimes: io.containerd.runc.v2 nvidia runc
+ Default Runtime: runc
+aszab@DESKTOP-MOQEHMI:~$ ls
+:USERPROFILE.dockerconfig.json
+aszab@DESKTOP-MOQEHMI:~$ wd
+wd: command not found
+aszab@DESKTOP-MOQEHMI:~$ pwd
+/home/aszab
+aszab@DESKTOP-MOQEHMI:~$ cd C:
+-bash: cd: C:: No such file or directory
+aszab@DESKTOP-MOQEHMI:~$ cd c:
+-bash: cd: c:: No such file or directory
+aszab@DESKTOP-MOQEHMI:~$
+aszab@DESKTOP-MOQEHMI:~$ sudo nano /etc/docker/daemon.json
+[sudo] password for aszab:
+aszab@DESKTOP-MOQEHMI:~$ sudo systemctl restart docker
+aszab@DESKTOP-MOQEHMI:~$ docker info | grep -i runtime
+WARNING: No blkio throttle.read_bps_device support
+WARNING: No blkio throttle.write_bps_device support
+WARNING: No blkio throttle.read_iops_device support
+WARNING: No blkio throttle.write_iops_device support
+WARNING: daemon is not using the default seccomp profile
+ Runtimes: io.containerd.runc.v2 nvidia runc
+ Default Runtime: runc
+aszab@DESKTOP-MOQEHMI:~$ suda apt update
+Command 'suda' not found, did you mean:
+  command 'sudo' from deb sudo (1.9.9-1ubuntu2.4)
+  command 'sudo' from deb sudo-ldap (1.9.9-1ubuntu2.4)
+Try: sudo apt install <deb name>
+aszab@DESKTOP-MOQEHMI:~$ sudo apt update
+Hit:1 https://nvidia.github.io/libnvidia-container/stable/ubuntu18.04/amd64  InRelease
+Hit:2 https://nvidia.github.io/nvidia-container-runtime/stable/ubuntu18.04/amd64  InRelease
+Hit:3 https://nvidia.github.io/nvidia-docker/ubuntu18.04/amd64  InRelease
+Hit:4 http://security.ubuntu.com/ubuntu jammy-security InRelease
+Hit:5 http://archive.ubuntu.com/ubuntu jammy InRelease
+Hit:6 http://archive.ubuntu.com/ubuntu jammy-updates InRelease
+Hit:7 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+105 packages can be upgraded. Run 'apt list --upgradable' to see them.
+W: https://nvidia.github.io/libnvidia-container/stable/ubuntu18.04/amd64/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: https://nvidia.github.io/nvidia-container-runtime/stable/ubuntu18.04/amd64/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: https://nvidia.github.io/nvidia-docker/ubuntu18.04/amd64/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+aszab@DESKTOP-MOQEHMI:~$ sudo apt install nvidia-docker2
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nvidia-docker2 is already the newest version (2.13.0-1).
+0 upgraded, 0 newly installed, 0 to remove and 105 not upgraded.
+aszab@DESKTOP-MOQEHMI:~$ sudo nvidia-ctk runtime configure --runtime=docker
+INFO[0000] Loading docker config from /etc/docker/daemon.json
+INFO[0000] Successfully loaded config
+INFO[0000] Wrote updated config to /etc/docker/daemon.json
+INFO[0000] It is recommended that the docker daemon be restarted.
+aszab@DESKTOP-MOQEHMI:~$ sudo systemctl restart docker
+aszab@DESKTOP-MOQEHMI:~$ sudo docker run --gpus all nvidia/cuda:11.0-base nvidia-smi
+Unable to find image 'nvidia/cuda:11.0-base' locally
+docker: Error response from daemon: manifest for nvidia/cuda:11.0-base not found: manifest unknown: manifest unknown.
+See 'docker run --help'.
+aszab@DESKTOP-MOQEHMI:~$ sudo docker pull nvidia/cuda:11.8.0-base
+Error response from daemon: manifest for nvidia/cuda:11.8.0-base not found: manifest unknown: manifest unknown
+aszab@DESKTOP-MOQEHMI:~$ sudo docker run --gpus all nvidia/cuda:11.8.0-base nvidia-smi
+Unable to find image 'nvidia/cuda:11.8.0-base' locally
+docker: Error response from daemon: manifest for nvidia/cuda:11.8.0-base not found: manifest unknown: manifest unknown.
+See 'docker run --help'.
+aszab@DESKTOP-MOQEHMI:~$ sudo docker pull nvidia/cuda:11.8.0-base-ubuntu20.04
+11.8.0-base-ubuntu20.04: Pulling from nvidia/cuda
+96d54c3075c9: Already exists
+09d415c238d7: Pull complete
+9fe6e2e61518: Pull complete
+41f16248e682: Pull complete
+95d7b7817039: Pull complete
+Digest: sha256:8803790082168d6fc95089288e8debb8e8318386658d10deb5c7175ec83b5e14
+Status: Downloaded newer image for nvidia/cuda:11.8.0-base-ubuntu20.04
+docker.io/nvidia/cuda:11.8.0-base-ubuntu20.04
+aszab@DESKTOP-MOQEHMI:~$ sudo docker run --gpus all nvidia/cuda:11.8.0-base nvidia-smi
+Unable to find image 'nvidia/cuda:11.8.0-base' locally
+docker: Error response from daemon: manifest for nvidia/cuda:11.8.0-base not found: manifest unknown: manifest unknown.
+See 'docker run --help'.
+aszab@DESKTOP-MOQEHMI:~$ sudo docker run --gpus all nvidia/cuda:11.8.0-base-ubuntu20.04 nvidia-smi
+Sun Jun 23 16:43:03 2024
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.40.07              Driver Version: 551.52         CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 4070 Ti     On  |   00000000:02:00.0  On |                  N/A |
+|  0%   43C    P8             13W /  285W |    1744MiB /  12282MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A        28      G   /Xwayland                                   N/A      |
++-----------------------------------------------------------------------------------------+
+aszab@DESKTOP-MOQEHMI:~$

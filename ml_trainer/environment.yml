@@ -5,5 +5,7 @@ dependencies:
   - python=3.12.4
   - pandas
   - scikit-learn
+  - matplotlib
   - influxdb-client
+  - joblib
 
