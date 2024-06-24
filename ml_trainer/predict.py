@@ -1,111 +1,87 @@
-import pandas as pd
 import torch
 import joblib
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from torch.utils.data import Dataset, DataLoader
-import torch.nn as nn
+import pandas as pd
 
-
-class RenderJobsDataset(Dataset):
-    def __init__(self, X, y=None):
-        self.X = torch.tensor(X.values, dtype=torch.float32)
-        self.y = torch.tensor(y.values, dtype=torch.float32).view(-1, 1) if y is not None else None
-
-    def __len__(self):
-        return len(self.X)
-
-    def __getitem__(self, idx):
-        if self.y is not None:
-            return self.X[idx], self.y[idx]
-        else:
-            return self.X[idx]
-
-
+# Define the model class if not already defined
 class RenderTimeModel(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self, input_size, hidden_size1, hidden_size2, hidden_size3, dropout_rate):
         super(RenderTimeModel, self).__init__()
-        self.fc1 = nn.Linear(input_size, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 32)
-        self.fc4 = nn.Linear(32, 1)
-        self.dropout = nn.Dropout(0.3)
+        self.fc1 = nn.Linear(input_size, hidden_size1)
+        self.fc2 = nn.Linear(hidden_size1, hidden_size2)
+        self.fc3 = nn.Linear(hidden_size2, hidden_size3)
+        self.fc4 = nn.Linear(hidden_size3, 1)
+        self.dropout = nn.Dropout(dropout_rate)
+        self.leaky_relu = nn.LeakyReLU()
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
+        x = self.leaky_relu(self.fc1(x))
         x = self.dropout(x)
-        x = torch.relu(self.fc2(x))
+        x = self.leaky_relu(self.fc2(x))
         x = self.dropout(x)
-        x = torch.relu(self.fc3(x))
+        x = self.leaky_relu(self.fc3(x))
         x = self.fc4(x)
         return x
 
+# Load the best hyperparameters
+best_params = joblib.load("best_params.pkl")
 
-def load_model_and_data():
-    # Load the trained model
-    input_size = 8  # Adjust based on the number of features
-    model = RenderTimeModel(input_size)
-    model.load_state_dict(torch.load("render_time_model.pth"))
-    model.eval()
+# Load the trained model
+model = RenderTimeModel(
+    input_size=11,  # Update with the correct input size
+    hidden_size1=best_params['hidden_size1'],
+    hidden_size2=best_params['hidden_size2'],
+    hidden_size3=best_params['hidden_size3'],
+    dropout_rate=best_params['dropout_rate']
+).to(device)
 
-    # Load the label encoders and scaler
-    label_encoders = joblib.load("label_encoders.pkl")
-    scaler = joblib.load("scaler.pkl")
+model.load_state_dict(torch.load("best_render_time_model.pth"))
+model.eval()
 
-    return model, label_encoders, scaler
+# Load the label encoders and scaler
+label_encoders = joblib.load("label_encoders.pkl")
+scaler = joblib.load("scaler.pkl")
 
+# Example new data
+new_data = {
+    "aa_samples": 8,
+    "aov_count": 4,
+    "file_size": 2.5,
+    "frame_number": 42,
+    "light_count": 10,
+    "polygon_count": 500000,
+    "resolution": "1920x1080",
+    "production_label": "fx_easy",
+    "task": "lighting",
+    "job_status": "finished",
+    "quality": "high"
+}
 
-def preprocess_input(data, label_encoders, scaler):
-    # Convert resolution to total number of pixels
-    data["resolution"] = data["resolution"].apply(lambda x: int(x.split("x")[0]) * int(x.split("x")[1]))
+# Convert to DataFrame
+new_df = pd.DataFrame([new_data])
 
-    # Encode categorical variables
-    for column in ["production_label", "task", "quality"]:
-        data[column] = label_encoders[column].transform(data[column])
+# Convert resolution to total number of pixels
+new_df["resolution"] = new_df["resolution"].apply(
+    lambda x: int(x.split("x")[0]) * int(x.split("x")[1])
+)
 
-    # Select relevant columns
-    print(data)
-    #data = data.drop(["render_time", "job_status", "file_size", "frame_number"], axis=1)
+# Encode categorical variables
+for column in ["production_label", "task", "quality"]:
+    le = label_encoders[column]
+    new_df[column] = le.transform(new_df[column])
 
-    # Normalize numerical features
-    data = pd.DataFrame(scaler.transform(data), columns=data.columns)
+# Drop unnecessary columns
+new_df = new_df.drop(["job_status", "file_size", "frame_number"], axis=1)
 
-    return data
+# Normalize numerical features
+new_X = pd.DataFrame(scaler.transform(new_df), columns=new_df.columns)
 
+# Convert to PyTorch tensor
+new_X_tensor = torch.tensor(new_X.values, dtype=torch.float32).to(device)
 
-def predict(model, data):
-    dataset = RenderJobsDataset(data)
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
+# Make prediction
+with torch.no_grad():
+    prediction = model(new_X_tensor)
 
-    predictions = []
-    with torch.no_grad():
-        for inputs in data_loader:
-            outputs = model(inputs)
-            predictions.append(outputs.item())
-
-    return predictions
-
-
-if __name__ == "__main__":
-    # Load the model, encoders, and scaler
-    model, label_encoders, scaler = load_model_and_data()
-
-    # Example input data
-    data = pd.DataFrame({
-        "aa_samples": [1],
-        "aov_count": [7],
-        "light_count": [8],
-        "polygon_count": [271940],
-        "resolution": ["1000x500"],
-        "production_label": ["fx_complex"],
-        "task": ["compositing"],
-        "quality": ["final"]
-    })
-
-    # Preprocess the input data
-    preprocessed_data = preprocess_input(data, label_encoders, scaler)
-
-    # Make predictions
-    predictions = predict(model, preprocessed_data)
-
-    # Print predictions
-    print("Predicted render time:", predictions)
+# Convert prediction to numpy array and print
+predicted_render_time = prediction.cpu().numpy().flatten()
+print("Predicted render time:", predicted_render_time)

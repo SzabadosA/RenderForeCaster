@@ -254,7 +254,7 @@ torch.save(model.state_dict(), "final_render_time_model.pth")
 # Save the label encoders and scaler
 joblib.dump(label_encoders, "label_encoders.pkl")
 joblib.dump(scaler, "scaler.pkl")
-
+joblib.dump(best_params, "best_params.pkl")
 # Plot training and test loss
 plt.figure()
 plt.plot(range(len(train_losses)), train_losses, label="Training Loss")
