@@ -1,70 +1,25 @@
-from sklearn.preprocessing import StandardScaler, LabelEncoder
 import pandas as pd
 import torch
-from torch.utils.data import Dataset, DataLoader
 import joblib
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
-import torch.optim as optim
-import matplotlib.pyplot as plt
 
-# Read the CSV file into a DataFrame
-df = pd.read_csv("renderdata.csv")
-print(df.columns)
-
-# Select relevant columns and drop unnecessary ones
-expected_columns = [
-    'aa_samples', 'aov_count', 'file_size', 'frame_number', 'light_count',
-    'polygon_count', 'resolution', 'production_label', 'task',
-    'job_status', 'quality', 'render_time'
-]
-
-missing_columns = [col for col in expected_columns if col not in df.columns]
-if missing_columns:
-    raise ValueError(f"Missing expected columns: {missing_columns}")
-
-df = df[expected_columns]
-
-# Drop rows with missing values
-df.dropna(inplace=True)
-
-# Convert resolution to total number of pixels
-df['resolution'] = df['resolution'].apply(lambda x: int(x.split('x')[0]) * int(x.split('x')[1]))
-
-# Encode categorical variables
-label_encoders = {}
-for column in ['production_label', 'task', 'quality']:
-    le = LabelEncoder()
-    df[column] = le.fit_transform(df[column])
-    label_encoders[column] = le
-
-# Separate features and target variable
-X = df.drop(['render_time', 'job_status', 'file_size', 'frame_number'], axis=1)
-y = df['render_time']
-print(X.columns)
-
-# Normalize numerical features
-scaler = StandardScaler()
-X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
 class RenderJobsDataset(Dataset):
-    def __init__(self, X, y):
+    def __init__(self, X, y=None):
         self.X = torch.tensor(X.values, dtype=torch.float32)
-        self.y = torch.tensor(y.values, dtype=torch.float32).view(-1, 1)
+        self.y = torch.tensor(y.values, dtype=torch.float32).view(-1, 1) if y is not None else None
 
     def __len__(self):
         return len(self.X)
 
     def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
+        if self.y is not None:
+            return self.X[idx], self.y[idx]
+        else:
+            return self.X[idx]
 
-# Create Dataset and DataLoader
-dataset = RenderJobsDataset(X, y)
-train_size = int(0.8 * len(dataset))
-test_size = len(dataset) - train_size
-train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
-
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
 class RenderTimeModel(nn.Module):
     def __init__(self, input_size):
@@ -84,55 +39,73 @@ class RenderTimeModel(nn.Module):
         x = self.fc4(x)
         return x
 
-input_size = X.shape[1]
-model = RenderTimeModel(input_size)
 
-# Define the optimizer with L2 regularization
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
-
-# Training loop with visualization
-num_epochs = 100
-train_losses = []
-test_losses = []
-
-for epoch in range(num_epochs):
-    model.train()
-    running_loss = 0.0
-    for inputs, targets in train_loader:
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-        running_loss += loss.item()
-
-    train_losses.append(running_loss / len(train_loader))
-
+def load_model_and_data():
+    # Load the trained model
+    input_size = 8  # Adjust based on the number of features
+    model = RenderTimeModel(input_size)
+    model.load_state_dict(torch.load("render_time_model.pth"))
     model.eval()
-    test_loss = 0.0
+
+    # Load the label encoders and scaler
+    label_encoders = joblib.load("label_encoders.pkl")
+    scaler = joblib.load("scaler.pkl")
+
+    return model, label_encoders, scaler
+
+
+def preprocess_input(data, label_encoders, scaler):
+    # Convert resolution to total number of pixels
+    data["resolution"] = data["resolution"].apply(lambda x: int(x.split("x")[0]) * int(x.split("x")[1]))
+
+    # Encode categorical variables
+    for column in ["production_label", "task", "quality"]:
+        data[column] = label_encoders[column].transform(data[column])
+
+    # Select relevant columns
+    print(data)
+    #data = data.drop(["render_time", "job_status", "file_size", "frame_number"], axis=1)
+
+    # Normalize numerical features
+    data = pd.DataFrame(scaler.transform(data), columns=data.columns)
+
+    return data
+
+
+def predict(model, data):
+    dataset = RenderJobsDataset(data)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
+
+    predictions = []
     with torch.no_grad():
-        for inputs, targets in test_loader:
+        for inputs in data_loader:
             outputs = model(inputs)
-            loss = criterion(outputs, targets)
-            test_loss += loss.item()
+            predictions.append(outputs.item())
 
-    test_losses.append(test_loss / len(test_loader))
+    return predictions
 
-    print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_losses[-1]}, Test Loss: {test_losses[-1]}")
 
-# Save the model
-torch.save(model.state_dict(), 'render_time_model.pth')
+if __name__ == "__main__":
+    # Load the model, encoders, and scaler
+    model, label_encoders, scaler = load_model_and_data()
 
-# Save the label encoders and scaler
-joblib.dump(label_encoders, 'label_encoders.pkl')
-joblib.dump(scaler, 'scaler.pkl')
+    # Example input data
+    data = pd.DataFrame({
+        "aa_samples": [1],
+        "aov_count": [7],
+        "light_count": [8],
+        "polygon_count": [271940],
+        "resolution": ["1000x500"],
+        "production_label": ["fx_complex"],
+        "task": ["compositing"],
+        "quality": ["final"]
+    })
 
-# Plot training and test loss
-plt.figure()
-plt.plot(range(num_epochs), train_losses, label='Training Loss')
-plt.plot(range(num_epochs), test_losses, label='Test Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.show()
+    # Preprocess the input data
+    preprocessed_data = preprocess_input(data, label_encoders, scaler)
+
+    # Make predictions
+    predictions = predict(model, preprocessed_data)
+
+    # Print predictions
+    print("Predicted render time:", predictions)
