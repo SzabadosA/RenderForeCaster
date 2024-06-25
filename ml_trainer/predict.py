@@ -1,6 +1,8 @@
 import torch
 import joblib
 import pandas as pd
+import torch.nn as nn
+import matplotlib.pyplot as plt
 
 # Define the model class if not already defined
 class RenderTimeModel(nn.Module):
@@ -22,12 +24,13 @@ class RenderTimeModel(nn.Module):
         x = self.fc4(x)
         return x
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load the best hyperparameters
 best_params = joblib.load("best_params.pkl")
 
 # Load the trained model
 model = RenderTimeModel(
-    input_size=11,  # Update with the correct input size
+    input_size=8,  # Update with the correct input size
     hidden_size1=best_params['hidden_size1'],
     hidden_size2=best_params['hidden_size2'],
     hidden_size3=best_params['hidden_size3'],
@@ -45,14 +48,11 @@ scaler = joblib.load("scaler.pkl")
 new_data = {
     "aa_samples": 8,
     "aov_count": 4,
-    "file_size": 2.5,
-    "frame_number": 42,
     "light_count": 10,
     "polygon_count": 500000,
     "resolution": "1920x1080",
     "production_label": "fx_easy",
     "task": "lighting",
-    "job_status": "finished",
     "quality": "high"
 }
 
@@ -69,9 +69,6 @@ for column in ["production_label", "task", "quality"]:
     le = label_encoders[column]
     new_df[column] = le.transform(new_df[column])
 
-# Drop unnecessary columns
-new_df = new_df.drop(["job_status", "file_size", "frame_number"], axis=1)
-
 # Normalize numerical features
 new_X = pd.DataFrame(scaler.transform(new_df), columns=new_df.columns)
 
@@ -85,3 +82,27 @@ with torch.no_grad():
 # Convert prediction to numpy array and print
 predicted_render_time = prediction.cpu().numpy().flatten()
 print("Predicted render time:", predicted_render_time)
+
+# Testing gradual changes
+resolutions = ["1920x1080", "2560x1440", "3840x2160"]
+predictions = []
+
+for res in resolutions:
+    test_data = new_data.copy()
+    test_data["resolution"] = res
+    test_df = pd.DataFrame([test_data])
+    test_df["resolution"] = test_df["resolution"].apply(lambda x: int(x.split("x")[0]) * int(x.split("x")[1]))
+    for column in ["production_label", "task", "quality"]:
+        le = label_encoders[column]
+        test_df[column] = le.transform(test_df[column])
+    test_X = pd.DataFrame(scaler.transform(test_df), columns=test_df.columns)
+    test_X_tensor = torch.tensor(test_X.values, dtype=torch.float32).to(device)
+    with torch.no_grad():
+        pred = model(test_X_tensor)
+    predictions.append(pred.cpu().numpy().flatten()[0])
+
+plt.plot(resolutions, predictions, marker='o')
+plt.xlabel("Resolution")
+plt.ylabel("Predicted Render Time")
+plt.title("Predicted Render Time vs. Resolution")
+plt.show()
